@@ -1,0 +1,83 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, {useEffect} from "react";
+import {useParams} from "react-router-dom";
+import {IPaymentInformation} from "../utils/interfaces";
+import {setPaymentInfo} from "../app/paymentApi/PaymentSlice";
+import {useGetPaymentInformationQuery} from "../app/paymentApi/PaymentApiSlice";
+import {useAppDispatch} from "../app/hooks";
+import Loading from "./Loading";
+import ErrorPage from "./ErrorPage";
+
+interface APIRequestParams extends Record<string, string | undefined> {
+  apiKey: string;
+}
+
+const ProviderSwitcher: React.FC = () => {
+  const {apiKey} = useParams<APIRequestParams>();
+  const dispatch = useAppDispatch();
+  let paymentInformation: IPaymentInformation | undefined;
+  let expiryDateTime: Date | undefined;
+  const {data, isLoading, isError, error, isSuccess} =
+    useGetPaymentInformationQuery(apiKey ?? "", {
+      skip: !apiKey,
+    });
+
+  useEffect(() => {
+    if (data && data.valid) {
+      paymentInformation = data;
+      expiryDateTime = new Date(paymentInformation.paymentLinkExpiryDate);
+      console.table(paymentInformation);
+      dispatch(setPaymentInfo(paymentInformation));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  // Handle loading state
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  // Handle error state
+  if (isError) {
+    if ("status" in error) {
+      const errMsg =
+        "error" in error ? error.error : JSON.stringify(error.data);
+
+      return (
+        <ErrorPage message={errMsg} />
+      );
+    } else {
+      return <ErrorPage message={error.message || "222 - Something went wrong"} />;
+    }
+  }
+
+  // Handle success state
+  if (isSuccess) {
+    //if public key is invalid
+    if (paymentInformation?.valid == false) {
+      return <ErrorPage message={"Oops! Wrong payment link! "} />;
+    }
+    //If payment link has expired
+    else if (expiryDateTime == undefined || expiryDateTime < new Date()) {
+      return <ErrorPage message={"Oops! Payment link has expired."} />;
+    } else {
+      // Navigate to appropriate checkout page.
+      return (
+        <div>
+          {data && (
+            <div>
+              <h1>Payment Information</h1>
+              <p>{JSON.stringify(data)}</p>
+              <h4>{new Date().toISOString()}</h4>
+            </div>
+          )}
+        </div>
+      );
+    }
+  }
+
+  // Handle initial/default state
+  else return <h1>333 - Something went wrong 💀</h1>;
+};
+
+export default ProviderSwitcher;

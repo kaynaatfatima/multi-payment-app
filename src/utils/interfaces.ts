@@ -35,3 +35,17 @@ export interface IPaymentInformation {
     key: string;
   };
 }
+
+export interface IPaymentStatus {
+  success: boolean;
+  error: string;
+  nextActionRequired: boolean;
+  nextActionUrl: string;
+  order: null | any;
+}
+
+export interface IPaymentMethodQueryObject {
+  key?: string;
+  mode: string;
+  paymentMethod: string;
+}

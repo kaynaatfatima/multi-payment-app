@@ -12,8 +12,16 @@ import {loadStripe} from "@stripe/stripe-js";
 import gradient_bg from "../../assets/gradient-bg.png";
 import shape_vector from "../../assets/shape-vector.png";
 import {useLocation} from "react-router-dom";
-import {IPaymentInformation} from "../../utils/interfaces";
+import {
+  IPaymentInformation,
+  IPaymentMethodQueryObject,
+  IPaymentStatus,
+} from "../../utils/interfaces";
 import {useNavigate} from "react-router-dom";
+import {useGetPaymentStatusMutation} from "../../app/paymentApi/PaymentApiSlice";
+import {useAppDispatch} from "../../app/hooks";
+import {setPaymentMethodInfo} from "../../app/paymentApi/PaymentSlice";
+import Modal from "../../components/Modal";
 
 const CheckoutForm: React.FC = () => {
   const location = useLocation();
@@ -22,12 +30,27 @@ const CheckoutForm: React.FC = () => {
   const navigate = useNavigate();
   const stripe = useStripe();
   const elements = useElements();
-  const valid = useAppSelector((state) => state.payment.valid);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
+  const [open3DSecureModal, setOpen3DSecureModal] = useState<boolean>(false);
+  const [threeDSecureLink, setThreeDSecureLink] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<IPaymentStatus | null>(
+    null
+  );
   const [name, setName] = useState<string>("");
-  console.log("valid", valid);
+  const apiKey = useAppSelector((state) => state.payment.apiKey);
+  const dispatch = useAppDispatch();
+
+  const [
+    getPaymentStatus,
+    {
+      error: paymentStatusError,
+      isError: isPaymentStatusError,
+      isSuccess: isPaymentStatusSuccess,
+      isLoading: isPaymentStatusLoading,
+    },
+  ] = useGetPaymentStatusMutation();
 
   const handleOnError = (errMsg: string) => {
     console.log("handle on error: ", errMsg);
@@ -77,11 +100,45 @@ const CheckoutForm: React.FC = () => {
         setPaymentError(error.message || null);
         setPaymentSuccess(false);
       } else {
-        console.log("Payment Method:", paymentMethod);
+        console.log("Payment Method:", JSON.stringify(paymentMethod));
+        console.log("apikey: ", apiKey);
+        dispatch(setPaymentMethodInfo(paymentMethod));
+
+        const paymentKeys: IPaymentMethodQueryObject = {
+          key: apiKey,
+          mode: paymentMethod.type,
+          paymentMethod: paymentMethod.id,
+        };
+        console.log("payment keys: ", paymentKeys);
+        const response = await getPaymentStatus(paymentKeys);
+
+        // Store the result in paymentStatus
+        if ("data" in response) {
+          setPaymentStatus(response.data);
+        } else {
+          console.log("reposnse err: ", JSON.stringify(response));
+          console.log("reposnse err2: ", response);
+          // handleOnError(response?.error?.)
+        }
       }
       setButtonLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log("error", paymentStatusError);
+    console.log("isError", isPaymentStatusError);
+    console.log("success", isPaymentStatusSuccess);
+
+    if (isPaymentStatusSuccess && paymentStatus?.success) {
+      console.log("yooo");
+      navigate("/success");
+    } else if (isPaymentStatusSuccess && !paymentStatus?.success) {
+      console.log("second link");
+      setThreeDSecureLink(paymentStatus?.nextActionUrl as string);
+      setOpen3DSecureModal(true);
+    }
+  }, [isPaymentStatusSuccess, paymentStatus]);
 
   return (
     paymentInfo && (
@@ -137,8 +194,10 @@ const CheckoutForm: React.FC = () => {
               <button
                 className="btn btn-secondary btn-lg w-100 btn-hover-shine"
                 type="submit"
-                disabled={!stripe || buttonLoading}>
-                {buttonLoading ? "Loading..." : "Make Payment"}
+                disabled={!stripe || buttonLoading || isPaymentStatusLoading}>
+                {buttonLoading || isPaymentStatusLoading
+                  ? "Loading..."
+                  : "Make Payment"}
               </button>
             </form>
 
@@ -193,13 +252,20 @@ const CheckoutForm: React.FC = () => {
             Payment Successful!
           </div>
         )}
+        {open3DSecureModal && (
+          <Modal
+            open={open3DSecureModal}
+            onClose={() => setOpen3DSecureModal(false)}
+            iframeSrc={threeDSecureLink}
+          />
+        )}
       </>
     )
   );
 };
 
 const StripeCheckout: React.FC = () => {
-  const publicKey = useAppSelector((state)=> state.payment.provider?.key)
+  const publicKey = useAppSelector((state) => state.payment.provider?.key);
   const stripePromise = loadStripe(publicKey || "");
 
   return (

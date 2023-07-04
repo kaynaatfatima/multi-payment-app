@@ -2,7 +2,7 @@
 import React, {useEffect} from "react";
 import {useParams, useNavigate} from "react-router-dom";
 import {IPaymentInformation} from "../utils/interfaces";
-import {setPaymentInfo} from "../app/paymentApi/PaymentSlice";
+import {setPaymentInfo, setApiKey} from "../app/paymentApi/PaymentSlice";
 import {useGetPaymentInformationQuery} from "../app/paymentApi/PaymentApiSlice";
 import {useAppDispatch} from "../app/hooks";
 import Loading from "./Loading";
@@ -22,7 +22,7 @@ const ProviderSwitcher: React.FC = () => {
       skip: !apiKey,
     });
   const handleOnError = (errMsg: string) => {
-    console.log("handle on error: ", errMsg)
+    console.log("handle on error: ", errMsg);
     navigate("/error", {
       state: {
         message: errMsg,
@@ -32,14 +32,16 @@ const ProviderSwitcher: React.FC = () => {
 
   const handleOnSuccess = (paymentInfo: IPaymentInformation) => {
     console.log("handle on error: ", paymentInfo);
-    if(paymentInfo.providerDetails.provider.toLowerCase() === "stripe"){
+    if (paymentInfo.providerDetails.provider.toLowerCase() === "stripe") {
       navigate("/stripe-checkout", {
         state: {
           paymentInfo,
           apiKey,
         },
       });
-    } else if(paymentInfo.providerDetails.provider.toLowerCase() === "checkout"){
+    } else if (
+      paymentInfo.providerDetails.provider.toLowerCase() === "checkout"
+    ) {
       navigate("/checkout-dot-com-checkout", {
         state: {
           paymentInfo,
@@ -47,14 +49,20 @@ const ProviderSwitcher: React.FC = () => {
         },
       });
     }
-    
   };
 
   useEffect(() => {
-    if(isLoading){
+    if (isLoading) {
       <Loading />;
     }
-  }, [isLoading])
+  }, [isLoading]);
+  
+  useEffect(() => {
+    if (apiKey) {
+      console.log("aaa", apiKey);
+      dispatch(setApiKey(apiKey));
+    }
+  }, [apiKey])
   
 
   useEffect(() => {
@@ -69,9 +77,9 @@ const ProviderSwitcher: React.FC = () => {
 
   useEffect(() => {
     if (isError) {
-      console.log("ERROR 1", error)
+      console.log("ERROR 1", error);
       if ("status" in error) {
-      console.log("ERROR 2", error);
+        console.log("ERROR 2", error);
 
         const errMsg =
           "error" in error
@@ -84,7 +92,7 @@ const ProviderSwitcher: React.FC = () => {
 
         handleOnError(errMsg);
       } else {
-      console.log("ERROR 3", error);
+        console.log("ERROR 3", error);
 
         handleOnError(error?.message as string);
       }
@@ -96,23 +104,24 @@ const ProviderSwitcher: React.FC = () => {
     if (isSuccess) {
       //if public key is invalid
       if (paymentInformation?.valid === false) {
-      console.log("ERROR 4 - invalid");
+        console.log("ERROR 4 - invalid");
 
         handleOnError("Invalid payment link");
       }
       //If payment link has expired
       else if (expiryDateTime === undefined || expiryDateTime < new Date()) {
-      console.log("ERROR 5 - expired");
+        console.log("ERROR 5 - expired");
 
         handleOnError("Payment link has expired");
-      }
-      else{
-        handleOnSuccess(data)
+      } else {
+        handleOnSuccess(data);
       }
     }
   }, [isSuccess]);
 
-  return isLoading? <Loading /> : (
+  return isLoading ? (
+    <Loading />
+  ) : (
     <div>
       {data && (
         <div>

@@ -22522,7 +22522,7 @@ select:focus {
 .checkout-page > div{
   width: min(90%, 1200px);
 }
-.error-page {
+.gradient-page {
   position: fixed;
   top: 0;
   bottom: 0;

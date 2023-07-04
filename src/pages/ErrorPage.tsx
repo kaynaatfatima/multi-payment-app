@@ -7,9 +7,9 @@ interface IErrorPageProps {
 
 const ErrorPage: React.FC<IErrorPageProps> = () => {
   const location = useLocation();
-  const message = location.state.message;
+  const message = location.state?.message;
   return (
-    <div className="error-page">
+    <div className="gradient-page">
       <section className="dark-card shadow border">
         <h1 className="text-center mb-4">Error</h1>
         <p className="text-center h5 text-light">

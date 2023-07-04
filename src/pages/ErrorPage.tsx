@@ -1,5 +1,5 @@
 import React from "react";
-import {useLocation} from "react-router-dom";
+import {useLocation, Link} from "react-router-dom";
 
 interface IErrorPageProps {
   message: string;
@@ -15,9 +15,9 @@ const ErrorPage: React.FC<IErrorPageProps> = () => {
         <p className="text-center h5 text-light">
           {message? message: "111 - Something went wrong"}
         </p>
-        <button className="btn btn-primary btn-hover-shine btn-lg w-100 mt-3">
+        <Link className="btn btn-primary btn-hover-shine btn-lg w-100 mt-3" to="https://xtrategise.com">
           GO TO HOME
-        </button>
+        </Link>
       </section>
     </div>
   );

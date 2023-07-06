@@ -21,7 +21,8 @@ import {useNavigate} from "react-router-dom";
 import {useGetPaymentStatusMutation} from "../../app/paymentApi/PaymentApiSlice";
 import {useAppDispatch} from "../../app/hooks";
 import {setPaymentMethodInfo} from "../../app/paymentApi/PaymentSlice";
-import Modal from "../../components/Modal";
+import Loading from "../../pages/Loading";
+// import Modal from "../../components/Modal";
 
 const CheckoutForm: React.FC = () => {
   const location = useLocation();
@@ -33,12 +34,13 @@ const CheckoutForm: React.FC = () => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
   const [buttonLoading, setButtonLoading] = useState<boolean>(false);
-  const [open3DSecureModal, setOpen3DSecureModal] = useState<boolean>(false);
-  const [threeDSecureLink, setThreeDSecureLink] = useState<string | null>(null);
+  // const [open3DSecureModal, setOpen3DSecureModal] = useState<boolean>(false);
+  // const [threeDSecureLink, setThreeDSecureLink] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<IPaymentStatus | null>(
     null
   );
   const [name, setName] = useState<string>("");
+
   const apiKey = useAppSelector((state) => state.payment.apiKey);
   const dispatch = useAppDispatch();
 
@@ -96,7 +98,7 @@ const CheckoutForm: React.FC = () => {
       });
 
       if (error) {
-        console.error("Error:", error.message);
+        console.log("Error:", error.message);
         setPaymentError(error.message || null);
         setPaymentSuccess(false);
       } else {
@@ -114,11 +116,39 @@ const CheckoutForm: React.FC = () => {
 
         // Store the result in paymentStatus
         if ("data" in response) {
-          setPaymentStatus(response.data);
+          if (response.data.success) {
+            navigate("/success");
+          } else {
+            setPaymentStatus(response.data);
+            console.log("payment status set ", response.data);
+            if (
+              paymentMethod.card &&
+              paymentMethod.card.three_d_secure_usage?.supported
+            ) {
+              console.log("client secret: ", response.data.clientSecret);
+              const {error} = await stripe.confirmPayment({
+                clientSecret: response.data.clientSecret,
+                confirmParams: {
+                  // Return URL where the customer should be redirected after the PaymentIntent is confirmed.
+                  return_url: `${window.location.origin}/success`,
+                },
+              });
+              if (error) {
+                console.log("CONFIRM PAYMENT ERROR: ", error);
+
+                handleOnError(error.message || ""); // Inform the customer that there was an error.
+              }
+            } else {
+              console.log("payment method creation without 3DS authentication");
+              navigate("/success");
+              // Handle the payment method creation without 3DS authentication
+            }
+          }
         } else {
-          console.log("reposnse err: ", JSON.stringify(response));
-          console.log("reposnse err2: ", response);
-          // handleOnError(response?.error?.)
+          console.log("response err: ", JSON.stringify(response));
+          console.log("response err2: ", response);
+          //TODO: getting parsing error on stolen card and other errors like that
+          handleOnError(JSON.stringify(response.error.data));
         }
       }
       setButtonLoading(false);
@@ -135,8 +165,8 @@ const CheckoutForm: React.FC = () => {
       navigate("/success");
     } else if (isPaymentStatusSuccess && !paymentStatus?.success) {
       console.log("second link");
-      setThreeDSecureLink(paymentStatus?.nextActionUrl as string);
-      setOpen3DSecureModal(true);
+      // setThreeDSecureLink(paymentStatus?.nextActionUrl as string);
+      // setOpen3DSecureModal(true);
     }
   }, [isPaymentStatusSuccess, paymentStatus]);
 
@@ -252,13 +282,13 @@ const CheckoutForm: React.FC = () => {
             Payment Successful!
           </div>
         )}
-        {open3DSecureModal && (
+        {/* {open3DSecureModal && (
           <Modal
             open={open3DSecureModal}
             onClose={() => setOpen3DSecureModal(false)}
             iframeSrc={threeDSecureLink}
           />
-        )}
+        )} */}
       </>
     )
   );

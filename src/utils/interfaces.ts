@@ -42,6 +42,7 @@ export interface IPaymentStatus {
   nextActionRequired: boolean;
   nextActionUrl: string;
   order: null | any;
+  clientSecret: string;
 }
 
 export interface IPaymentMethodQueryObject {

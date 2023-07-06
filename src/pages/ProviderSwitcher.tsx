@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect} from "react";
-import {useParams, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {IPaymentInformation} from "../utils/interfaces";
 import {setPaymentInfo, setApiKey} from "../app/paymentApi/PaymentSlice";
 import {useGetPaymentInformationQuery} from "../app/paymentApi/PaymentApiSlice";
@@ -12,7 +12,8 @@ interface APIRequestParams extends Record<string, string | undefined> {
 }
 
 const ProviderSwitcher: React.FC = () => {
-  const {apiKey} = useParams<APIRequestParams>();
+  const queryParams = new URLSearchParams(location.search);
+  const apiKey = queryParams.get("key");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   let paymentInformation: IPaymentInformation | undefined;
@@ -29,7 +30,7 @@ const ProviderSwitcher: React.FC = () => {
       },
     });
   };
-
+  console.log("...PROVIDER SWITCHER...")
   const handleOnSuccess = (paymentInfo: IPaymentInformation) => {
     console.log("handle on error: ", paymentInfo);
     if (paymentInfo.providerDetails.provider.toLowerCase() === "stripe") {

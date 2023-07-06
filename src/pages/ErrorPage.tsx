@@ -13,7 +13,7 @@ const ErrorPage: React.FC<IErrorPageProps> = () => {
       <section className="dark-card shadow border">
         <h1 className="text-center mb-4">Error</h1>
         <p className="text-center h5 text-light">
-          {message? message: "111 - Something went wrong"}
+          {message && message !== "" ? message: "Something went wrong"}
         </p>
         <Link className="btn btn-primary btn-hover-shine btn-lg w-100 mt-3" to="https://xtrategise.com">
           GO TO HOME

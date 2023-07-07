@@ -42,10 +42,7 @@ const CheckoutForm: React.FC = () => {
 
   const [
     getPaymentStatus,
-    {
-      isSuccess: isPaymentStatusSuccess,
-      isLoading: isPaymentStatusLoading,
-    },
+    {isSuccess: isPaymentStatusSuccess, isLoading: isPaymentStatusLoading},
   ] = useGetPaymentStatusMutation();
 
   const handleOnError = (errMsg: string) => {
@@ -58,7 +55,8 @@ const CheckoutForm: React.FC = () => {
 
   useEffect(() => {
     if (!paymentInfo) handleOnError("Oops! This page has restricted access.");
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentInfo]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -74,9 +72,7 @@ const CheckoutForm: React.FC = () => {
     if (!stripe || !elements) {
       return;
     }
-
     const cardElement = elements.getElement(CardNumberElement);
-
     if (cardElement) {
       const {error, paymentMethod} = await stripe.createPaymentMethod({
         type: "card",
@@ -103,7 +99,6 @@ const CheckoutForm: React.FC = () => {
         };
         const response = await getPaymentStatus(paymentKeys);
 
-        // Store the result in paymentStatus
         if ("data" in response) {
           if (response.data.success) {
             navigate("/success");
@@ -116,7 +111,6 @@ const CheckoutForm: React.FC = () => {
               const {error} = await stripe.confirmPayment({
                 clientSecret: response.data.clientSecret,
                 confirmParams: {
-                  // Return URL where the customer should be redirected after the PaymentIntent is confirmed.
                   return_url: `${window.location.origin}/success`,
                 },
               });
@@ -138,7 +132,7 @@ const CheckoutForm: React.FC = () => {
   useEffect(() => {
     if (isPaymentStatusSuccess && paymentStatus?.success) {
       navigate("/success");
-    } 
+    }
   }, [isPaymentStatusSuccess, paymentStatus]);
 
   return (

@@ -7,10 +7,6 @@ import {useGetPaymentInformationQuery} from "../app/paymentApi/PaymentApiSlice";
 import {useAppDispatch} from "../app/hooks";
 import Loading from "./Loading";
 
-interface APIRequestParams extends Record<string, string | undefined> {
-  apiKey: string;
-}
-
 const ProviderSwitcher: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
   const apiKey = queryParams.get("key");
@@ -23,16 +19,19 @@ const ProviderSwitcher: React.FC = () => {
       skip: !apiKey,
     });
   const handleOnError = (errMsg: string) => {
-    console.log("handle on error: ", errMsg);
     navigate("/error", {
       state: {
         message: errMsg,
       },
     });
   };
-  console.log("...PROVIDER SWITCHER...")
+  useEffect(() => {
+    if (apiKey === undefined) {
+      handleOnError("This payment does not exist");
+    }
+  }, [apiKey]);
+
   const handleOnSuccess = (paymentInfo: IPaymentInformation) => {
-    console.log("handle on error: ", paymentInfo);
     if (paymentInfo.providerDetails.provider.toLowerCase() === "stripe") {
       navigate("/stripe-checkout", {
         state: {
@@ -57,30 +56,27 @@ const ProviderSwitcher: React.FC = () => {
       <Loading />;
     }
   }, [isLoading]);
-  
+
   useEffect(() => {
     if (apiKey) {
-      console.log("aaa", apiKey);
       dispatch(setApiKey(apiKey));
     }
-  }, [apiKey])
-  
+  }, [apiKey]);
 
   useEffect(() => {
     if (data && data.valid) {
       paymentInformation = data;
-      expiryDateTime = new Date(paymentInformation.paymentLinkExpiryDate);
-      console.log(paymentInformation);
-      dispatch(setPaymentInfo(paymentInformation));
+      if (paymentInformation) {
+        expiryDateTime = new Date(paymentInformation?.paymentLinkExpiryDate);
+        dispatch(setPaymentInfo(paymentInformation));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   useEffect(() => {
     if (isError) {
-      console.log("ERROR 1", error);
       if ("status" in error) {
-        console.log("ERROR 2", error);
 
         const errMsg =
           "error" in error
@@ -93,8 +89,6 @@ const ProviderSwitcher: React.FC = () => {
 
         handleOnError(errMsg);
       } else {
-        console.log("ERROR 3", error);
-
         handleOnError(error?.message as string);
       }
     }
@@ -105,14 +99,10 @@ const ProviderSwitcher: React.FC = () => {
     if (isSuccess) {
       //if public key is invalid
       if (paymentInformation?.valid === false) {
-        console.log("ERROR 4 - invalid");
-
         handleOnError("Invalid payment link");
       }
       //If payment link has expired
       else if (expiryDateTime === undefined || expiryDateTime < new Date()) {
-        console.log("ERROR 5 - expired");
-
         handleOnError("Payment link has expired");
       } else {
         handleOnSuccess(data);

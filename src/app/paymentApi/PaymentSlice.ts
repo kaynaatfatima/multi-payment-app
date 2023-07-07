@@ -44,7 +44,6 @@ const paymentSlice = createSlice({
       state.apiKey = apiKey;
     },
     setPaymentMethodInfo: (state, action: PayloadAction<PaymentMethod>) => {
-      console.log("payment method payload: ", action.payload)
       const {
         id, type
       } = action.payload;

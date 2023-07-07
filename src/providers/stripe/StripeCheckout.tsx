@@ -115,14 +115,19 @@ const CheckoutForm: React.FC = () => {
                 },
               });
               if (error) {
-                handleOnError(error.message || ""); // Inform the customer that there was an error.
+                handleOnError(error.message || ""); 
               }
             } else {
               navigate("/success");
             }
           }
         } else {
-          handleOnError(JSON.stringify(response.error.data.error));
+          if ("data" in response.error && response.error.data) {
+            handleOnError(JSON.stringify(response.error.data.error));
+          } else {
+            handleOnError(JSON.stringify(response.error));
+          }
+
         }
       }
       setButtonLoading(false);

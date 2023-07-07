@@ -76,21 +76,16 @@ const ProviderSwitcher: React.FC = () => {
 
   useEffect(() => {
     if (isError) {
-      if ("status" in error) {
+      const errMsg =
+        "error" in error
+          ? (error.error as string)
+          : "message" in error
+          ? (error.message as string)
+          : "data" in error
+          ? (error.data?.message as string)
+          : JSON.stringify(error);
 
-        const errMsg =
-          "error" in error
-            ? (error.error as string)
-            : "message" in error
-            ? (error.message as string)
-            : "data" in error
-            ? (error.data?.message as string)
-            : JSON.stringify(error);
-
-        handleOnError(errMsg);
-      } else {
-        handleOnError(error?.message as string);
-      }
+      handleOnError(errMsg);
     }
   }, [isError, error]);
 

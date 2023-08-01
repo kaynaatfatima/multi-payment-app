@@ -318,6 +318,7 @@ const CheckoutForm: React.FC = () => {
                 <img
                   src={paymentInfo?.clientDetails?.logo}
                   className="mx-auto mb-2"
+                  style={{maxWidth: "100%", maxHeight: "2rem"}}
                 />
               )}
               <div className="image-div">

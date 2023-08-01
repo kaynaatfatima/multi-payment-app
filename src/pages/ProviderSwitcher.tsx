@@ -10,6 +10,7 @@ import Loading from "./Loading";
 const ProviderSwitcher: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
   const apiKey = queryParams.get("key");
+  const embedded = queryParams.get("embedded") === "true";
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   let paymentInformation: IPaymentInformation | undefined;
@@ -33,12 +34,22 @@ const ProviderSwitcher: React.FC = () => {
 
   const handleOnSuccess = (paymentInfo: IPaymentInformation) => {
     if (paymentInfo.providerDetails.provider.toLowerCase() === "stripe") {
-      navigate("/stripe-checkout", {
-        state: {
-          paymentInfo,
-          apiKey,
-        },
-      });
+      if (embedded) {
+        alert("embed true");
+        navigate("/stripe-em-checkout", {
+          state: {
+            paymentInfo,
+            apiKey,
+          },
+        });
+      } else {
+        navigate("/stripe-checkout", {
+          state: {
+            paymentInfo,
+            apiKey,
+          },
+        });
+      }
     } else if (
       paymentInfo.providerDetails.provider.toLowerCase() === "checkout"
     ) {

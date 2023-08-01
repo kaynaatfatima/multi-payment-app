@@ -7,6 +7,7 @@ const ProviderSwitcher = lazy(() => import("./pages/ProviderSwitcher"));
 const Success = lazy(() => import("./pages/Success"));
 
 const StripeCheckout = lazy(() => import("./providers/stripe/StripeCheckout"));
+const StripeEmbeddedCheckout = lazy(() => import("./providers/stripe/StripeEmbeddedCheckout"));
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const App: React.FC = () => {
           <Routes>
               <Route path="/payment" element={<ProviderSwitcher />}/>
               <Route path="/stripe-checkout" element={<StripeCheckout />} />
+              <Route path="/stripe-em-checkout" element={<StripeEmbeddedCheckout />} />
               <Route path="/error" element={<ErrorPage message=""/>} />
               <Route path="/success" element={<Success />} />
           </Routes>

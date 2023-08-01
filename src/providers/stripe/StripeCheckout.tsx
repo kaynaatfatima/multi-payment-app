@@ -8,9 +8,14 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import {useAppSelector} from "../../app/hooks";
-import {loadStripe} from "@stripe/stripe-js";
+import {
+  StripeCardCvcElementChangeEvent,
+  StripeCardExpiryElementChangeEvent,
+  StripeCardNumberElementChangeEvent,
+  loadStripe,
+} from "@stripe/stripe-js";
 import gradient_bg from "../../assets/gradient-bg.png";
-import shape_vector from "../../assets/shape-vector.png";
+import iol_logo from "../../assets/iol-logo.svg";
 import {useLocation} from "react-router-dom";
 import {
   IPaymentInformation,
@@ -36,6 +41,12 @@ const CheckoutForm: React.FC = () => {
     null
   );
   const [name, setName] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
+  const [cardNumberError, setCardNumberError] = useState<string>("");
+  const [cvcError, setCvcError] = useState<string>("");
+  const [expiryError, setExpiryError] = useState<string>("");
+  const [stripeValidationError, setStripeValidationError] =
+    useState<boolean>(true);
 
   const apiKey = useAppSelector((state) => state.payment.apiKey);
   const dispatch = useAppDispatch();
@@ -66,9 +77,83 @@ const CheckoutForm: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [paymentError, paymentSuccess]);
 
+  // Form validations
+
+  // Card name
+  const validateName = (value: string) => {
+    if (value.trim() === "") {
+      setNameError("Name cannot be blank");
+    } else {
+      const regex = /^[A-Za-z\s]+$/;
+      if (!regex.test(value)) {
+        setNameError(
+          "Invalid name format. Only letters (A-Z, a-z) are allowed."
+        );
+      } else {
+        setNameError("");
+      }
+    }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const {value} = e.target;
+    setName(value);
+    validateName(value);
+  };
+
+  //  Card number
+  const handleCardNumberChange = (
+    event: StripeCardNumberElementChangeEvent
+  ) => {
+    const {error} = event;
+    if (error) {
+      setCardNumberError(error.message);
+    } else {
+      setCardNumberError("");
+    }
+  };
+  // CVC
+  const handleCvcChange = (event: StripeCardCvcElementChangeEvent) => {
+    const {error} = event;
+    if (error) {
+      setCvcError(error.message);
+    } else {
+      setCvcError("");
+    }
+  };
+  // Expiry Date
+  const handleExpiryChange = (event: StripeCardExpiryElementChangeEvent) => {
+    const {error} = event;
+    if (error) {
+      setExpiryError(error.message);
+    } else {
+      setExpiryError("");
+    }
+  };
+
+  useEffect(() => {
+    if (
+      nameError !== "" ||
+      cardNumberError !== "" ||
+      cvcError !== "" ||
+      expiryError !== "" ||
+      name === ""
+    ) {
+      setStripeValidationError(true);
+      console.log("TRUE");
+    } else {
+      setStripeValidationError(false);
+    }
+  }, [nameError, cardNumberError, cvcError, expiryError, name, elements]);
+
+  // Form submission
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    validateName(name);
     setButtonLoading(true);
+    if (stripeValidationError) {
+      return;
+    }
     if (!stripe || !elements) {
       return;
     }
@@ -115,7 +200,7 @@ const CheckoutForm: React.FC = () => {
                 },
               });
               if (error) {
-                handleOnError(error.message || ""); 
+                handleOnError(error.message || "");
               }
             } else {
               navigate("/success");
@@ -127,7 +212,6 @@ const CheckoutForm: React.FC = () => {
           } else {
             handleOnError(JSON.stringify(response.error));
           }
-
         }
       }
       setButtonLoading(false);
@@ -138,6 +222,7 @@ const CheckoutForm: React.FC = () => {
     if (isPaymentStatusSuccess && paymentStatus?.success) {
       navigate("/success");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaymentStatusSuccess, paymentStatus]);
 
   return (
@@ -149,9 +234,6 @@ const CheckoutForm: React.FC = () => {
               "linear-gradient(70deg, rgba(29,29,29,1) 25%, rgba(230,230,230,1) 25%)",
           }}
           className="checkout-page d-flex flex-column justify-content-center align-items-center">
-          {paymentInfo.clientDetails.logo && (
-            <img src={paymentInfo?.clientDetails?.logo} alt="" />
-          )}
           <div className="d-flex flex-row flex-wrap-reverse p-4 m-2 rounded-2 shadow bg-white">
             <form
               onSubmit={handleSubmit}
@@ -162,46 +244,82 @@ const CheckoutForm: React.FC = () => {
                 <label>Card Holder Name</label>
                 <input
                   style={{textTransform: "uppercase"}}
-                  className="form-control"
-                  type="name"
+                  className={`form-control ${nameError ? "border-danger" : ""}`}
+                  type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="JOHN DOE"
-                  required
+                  onChange={(e) => handleNameChange(e)}
+                  placeholder="Name on card"
                 />
+                {nameError && (
+                  <em className="error invalid-feedback">{nameError}</em>
+                )}
               </div>
               <div className="form-row mb-3">
                 <label>Card Number</label>
-                <CardNumberElement className="form-control" />
+                <CardNumberElement
+                  className={`form-control ${
+                    cardNumberError ? "border-danger" : ""
+                  }`}
+                  onChange={(e) => handleCardNumberChange(e)}
+                />
+                {cardNumberError && (
+                  <em className="error invalid-feedback">{cardNumberError}</em>
+                )}
+              </div>
+              <div className="form-row mb-3">
+                <label>CVC</label>
+                <CardCvcElement
+                  className={`form-control ${cvcError ? "border-danger" : ""}`}
+                  onChange={(e) => handleCvcChange(e)}
+                />
+                {cvcError && (
+                  <em className="error invalid-feedback">{cvcError}</em>
+                )}
               </div>
               <div className="form-row mb-3">
                 <label>Expiry Date</label>
-                <CardExpiryElement className="form-control" />
+                <CardExpiryElement
+                  className={`form-control ${
+                    expiryError ? "border-danger" : ""
+                  }`}
+                  onChange={(e) => handleExpiryChange(e)}
+                />
+                {expiryError && (
+                  <em className="error invalid-feedback">{expiryError}</em>
+                )}
               </div>
-              <div className="form-row mb-3">
-                <label>CVV</label>
-                <CardCvcElement className="form-control" />
-              </div>
+
               <div className="divider my-4"></div>
               <div className="form-row mb-2">
                 <label className="mr-3">Total Amount:</label>
                 <span>
                   {paymentInfo.paymentDetails.currency +
                     " " +
-                    paymentInfo.paymentDetails.amount}
+                    paymentInfo.paymentDetails.amount.toLocaleString()}
                 </span>
               </div>
               <button
                 className="btn btn-secondary btn-lg w-100 btn-hover-shine"
                 type="submit"
-                disabled={!stripe || buttonLoading || isPaymentStatusLoading}>
+                disabled={
+                  !stripe ||
+                  buttonLoading ||
+                  isPaymentStatusLoading ||
+                  stripeValidationError
+                }>
                 {buttonLoading || isPaymentStatusLoading
-                  ? "Loading..."
+                  ? "Processing Payment"
                   : "Make Payment"}
               </button>
             </form>
 
             <div className="detail-section col-md-6 mb-3">
+              {paymentInfo.clientDetails.logo && (
+                <img
+                  src={paymentInfo?.clientDetails?.logo}
+                  className="mx-auto mb-2"
+                />
+              )}
               <div className="image-div">
                 <img
                   src={paymentInfo.clientDetails.bodyImage || gradient_bg}
@@ -211,42 +329,33 @@ const CheckoutForm: React.FC = () => {
                 />
               </div>
               <div className="sub-section position-relative bg-light px-4 pb-2 rounded-bottom">
-                <div className="price-info-card shadow d-flex flex-row position-absolute rounded-2">
-                  <img
-                    src={paymentInfo.clientDetails.logo || shape_vector}
-                    alt="shape vector"
-                    className="col-5 p-2 object-cover"
-                  />
-                  <div className="d-flex flex-column border-rounded-1 col-7 justify-content-center align-items-center">
-                    <p className="text-dark my-auto">
-                      <b>
-                        {paymentInfo.paymentDetails.currency +
-                          " " +
-                          paymentInfo.paymentDetails.amount}
-                      </b>
-                    </p>
-                  </div>
-                </div>
-                {paymentInfo.paymentDetails.description && (
-                  <>
-                    <h4 className="text-center" style={{paddingTop: "11%"}}>
-                      Payment details
-                    </h4>
+                <div className="pt-3">
+                  {paymentInfo.paymentDetails.description && (
                     <p className="text-justify">
                       {paymentInfo.paymentDetails.description}
+                      <br />
                     </p>
-                  </>
-                )}
+                  )}
+                  <p className="text-center">
+                    <b>Powered by </b>{" "}
+                    <img
+                      src={iol_logo}
+                      className="d-inline mx-2"
+                      alt="iOL Pay"
+                      style={{height: "1rem"}}
+                    />
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {paymentError && (
+        {/* {paymentError && (
           <div className="notification text-white bg-danger rounded-1 shadow error-message">
             Error: {" " + paymentError}
           </div>
-        )}
+        )} */}
         {paymentSuccess && (
           <div className="notification text-white bg-success rounded-1 shadow success-message">
             Payment Successful!

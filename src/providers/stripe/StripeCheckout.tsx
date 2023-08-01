@@ -234,7 +234,43 @@ const CheckoutForm: React.FC = () => {
               "linear-gradient(70deg, rgba(29,29,29,1) 25%, rgba(230,230,230,1) 25%)",
           }}
           className="checkout-page d-flex flex-column justify-content-center align-items-center">
-          <div className="d-flex flex-row flex-wrap-reverse p-4 m-2 rounded-2 shadow bg-white">
+          <div className="d-flex flex-row flex-wrap p-4 m-2 rounded-2 shadow bg-white">
+            <div className="detail-section col-md-6 mb-3">
+              {paymentInfo.clientDetails.logo && (
+                <img
+                  src={paymentInfo?.clientDetails?.logo}
+                  className="mx-auto mb-2"
+                  style={{maxWidth: "100%", maxHeight: "2rem"}}
+                />
+              )}
+              <div className="image-div">
+                <img
+                  src={paymentInfo.clientDetails.bodyImage || gradient_bg}
+                  alt="gradient bg"
+                  className="object-cover w-100 rounded-top"
+                  style={{height: "300px"}}
+                />
+              </div>
+              <div className="sub-section position-relative bg-light px-4 pb-2 rounded-bottom">
+                <div className="pt-3">
+                  {paymentInfo.paymentDetails.description && (
+                    <p className="text-justify">
+                      {paymentInfo.paymentDetails.description}
+                      <br />
+                    </p>
+                  )}
+                  <p className="text-center">
+                    <b>Powered by </b>{" "}
+                    <img
+                      src={iol_logo}
+                      className="d-inline mx-2"
+                      alt="iOL Pay"
+                      style={{height: "1rem"}}
+                    />
+                  </p>
+                </div>
+              </div>
+            </div>
             <form
               onSubmit={handleSubmit}
               className="checkout-form col-md-6 px-2 px-md-4">
@@ -312,43 +348,6 @@ const CheckoutForm: React.FC = () => {
                   : "Make Payment"}
               </button>
             </form>
-
-            <div className="detail-section col-md-6 mb-3">
-              {paymentInfo.clientDetails.logo && (
-                <img
-                  src={paymentInfo?.clientDetails?.logo}
-                  className="mx-auto mb-2"
-                  style={{maxWidth: "100%", maxHeight: "2rem"}}
-                />
-              )}
-              <div className="image-div">
-                <img
-                  src={paymentInfo.clientDetails.bodyImage || gradient_bg}
-                  alt="gradient bg"
-                  className="object-cover w-100 rounded-top"
-                  style={{height: "320px"}}
-                />
-              </div>
-              <div className="sub-section position-relative bg-light px-4 pb-2 rounded-bottom">
-                <div className="pt-3">
-                  {paymentInfo.paymentDetails.description && (
-                    <p className="text-justify">
-                      {paymentInfo.paymentDetails.description}
-                      <br />
-                    </p>
-                  )}
-                  <p className="text-center">
-                    <b>Powered by </b>{" "}
-                    <img
-                      src={iol_logo}
-                      className="d-inline mx-2"
-                      alt="iOL Pay"
-                      style={{height: "1rem"}}
-                    />
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

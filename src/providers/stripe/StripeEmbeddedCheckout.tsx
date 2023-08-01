@@ -223,95 +223,105 @@ const CheckoutForm: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaymentStatusSuccess, paymentStatus]);
 
-  return paymentInfo && (
-    <>
-      <div className="d-flex flex-row flex-wrap-reverse p-4 m-2">
-        <form
-          onSubmit={handleSubmit}
-          className="checkout-form col-12 px-2 px-md-4">
-          <div className="divider d-block d-md-none"></div>
-          <h3 className="mb-3 mt-2">Payment Details</h3>
-          <div className="form-row mb-3">
-            <label>Card Holder Name</label>
-            <input
-              style={{textTransform: "uppercase"}}
-              className={`form-control ${nameError ? "border-danger" : ""}`}
-              type="text"
-              value={name}
-              onChange={(e) => handleNameChange(e)}
-              placeholder="Name on card"
-            />
-            {nameError && (
-              <em className="error invalid-feedback">{nameError}</em>
-            )}
-          </div>
-          <div className="form-row mb-3">
-            <label>Card Number</label>
-            <CardNumberElement
-              className={`form-control ${
-                cardNumberError ? "border-danger" : ""
-              }`}
-              onChange={(e) => handleCardNumberChange(e)}
-            />
-            {cardNumberError && (
-              <em className="error invalid-feedback">{cardNumberError}</em>
-            )}
-          </div>
-          <div className="form-row mb-3">
-            <label>CVC</label>
-            <CardCvcElement
-              className={`form-control ${cvcError ? "border-danger" : ""}`}
-              onChange={(e) => handleCvcChange(e)}
-            />
-            {cvcError && <em className="error invalid-feedback">{cvcError}</em>}
-          </div>
-          <div className="form-row mb-3">
-            <label>Expiry Date</label>
-            <CardExpiryElement
-              className={`form-control ${expiryError ? "border-danger" : ""}`}
-              onChange={(e) => handleExpiryChange(e)}
-            />
-            {expiryError && (
-              <em className="error invalid-feedback">{expiryError}</em>
-            )}
-          </div>
+  return (
+    paymentInfo && (
+      <>
+        <div className="d-flex flex-row flex-wrap-reverse p-4 m-2">
+          <form
+            onSubmit={handleSubmit}
+            className="checkout-form col-12 px-2 px-md-4">
+            <div className="divider d-block d-md-none"></div>
+            <h3 className="mb-3 mt-2">Payment Details</h3>
+            <div className="form-row mb-3">
+              <label>Card Holder Name</label>
+              <input
+                style={{textTransform: "uppercase"}}
+                className={`form-control ${nameError ? "border-danger" : ""}`}
+                type="text"
+                value={name}
+                onChange={(e) => handleNameChange(e)}
+                placeholder="Name on card"
+              />
+              {nameError && (
+                <em className="error invalid-feedback">{nameError}</em>
+              )}
+            </div>
+            <div className="form-row mb-3">
+              <label>Card Number</label>
+              <CardNumberElement
+                className={`form-control ${
+                  cardNumberError ? "border-danger" : ""
+                }`}
+                onChange={(e) => handleCardNumberChange(e)}
+              />
+              {cardNumberError && (
+                <em className="error invalid-feedback">{cardNumberError}</em>
+              )}
+            </div>
+            <div className="form-row mb-3">
+              <label>CVC</label>
+              <CardCvcElement
+                className={`form-control ${cvcError ? "border-danger" : ""}`}
+                onChange={(e) => handleCvcChange(e)}
+              />
+              {cvcError && (
+                <em className="error invalid-feedback">{cvcError}</em>
+              )}
+            </div>
+            <div className="form-row mb-3">
+              <label>Expiry Date</label>
+              <CardExpiryElement
+                className={`form-control ${expiryError ? "border-danger" : ""}`}
+                onChange={(e) => handleExpiryChange(e)}
+              />
+              {expiryError && (
+                <em className="error invalid-feedback">{expiryError}</em>
+              )}
+            </div>
 
-          <div className="divider my-4"></div>
-          <div className="form-row mb-2">
-            <label className="mr-3">Total Amount:</label>
-            <span>
-              {paymentInfo.paymentDetails.currency +
-                " " +
-                paymentInfo.paymentDetails.amount.toLocaleString()}
-            </span>
-          </div>
-          <button
-            className="btn btn-secondary btn-lg w-100 btn-hover-shine"
-            type="submit"
-            disabled={
-              !stripe ||
-              buttonLoading ||
-              isPaymentStatusLoading ||
-              stripeValidationError
-            }>
-            {buttonLoading || isPaymentStatusLoading
-              ? "Processing Payment"
-              : "Make Payment"}
-          </button>
-        </form>
-      </div>
-
-      {/* {paymentError && (
-          <div className="notification text-white bg-danger rounded-1 shadow error-message">
-            Error: {" " + paymentError}
-          </div>
-        )} */}
-      {paymentSuccess && (
-        <div className="notification text-white bg-success rounded-1 shadow success-message">
-          Payment Successful!
+            <div className="divider my-4"></div>
+            <div className="form-row mb-2">
+              <label className="mr-3">Total Amount:</label>
+              <span>
+                {paymentInfo.paymentDetails.currency +
+                  " " +
+                  paymentInfo.paymentDetails.amount.toLocaleString()}
+              </span>
+            </div>
+            <button
+              className="btn btn-secondary btn-lg w-100 btn-hover-shine"
+              type="submit"
+              disabled={
+                !stripe ||
+                buttonLoading ||
+                isPaymentStatusLoading ||
+                stripeValidationError
+              }>
+              {buttonLoading || isPaymentStatusLoading
+                ? "Processing Payment"
+                : "Make Payment"}
+            </button>
+          </form>
         </div>
-      )}
-    </>
+
+        {paymentError ? (
+          !stripeValidationError ? (
+            <div className="notification text-white bg-danger rounded-1 shadow error-message">
+              Error: {" " + paymentError}
+            </div>
+          ) : (
+            ""
+          )
+        ) : (
+          ""
+        )}
+        {paymentSuccess && (
+          <div className="notification text-white bg-success rounded-1 shadow success-message">
+            Payment Successful!
+          </div>
+        )}
+      </>
+    )
   );
 };
 

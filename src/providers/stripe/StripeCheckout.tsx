@@ -352,11 +352,17 @@ const CheckoutForm: React.FC = () => {
           </div>
         </div>
 
-        {/* {paymentError && (
-          <div className="notification text-white bg-danger rounded-1 shadow error-message">
-            Error: {" " + paymentError}
-          </div>
-        )} */}
+        {paymentError ? (
+          !stripeValidationError ? (
+            <div className="notification text-white bg-danger rounded-1 shadow error-message">
+              Error: {" " + paymentError}
+            </div>
+          ) : (
+            ""
+          )
+        ) : (
+          ""
+        )}
         {paymentSuccess && (
           <div className="notification text-white bg-success rounded-1 shadow success-message">
             Payment Successful!

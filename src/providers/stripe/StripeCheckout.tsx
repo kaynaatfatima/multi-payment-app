@@ -40,6 +40,7 @@ const CheckoutForm: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<IPaymentStatus | null>(
     null
   );
+  const [payNowBtn, setPayNowBtn] = useState<boolean | undefined>();
   const [name, setName] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
   const [cardNumberError, setCardNumberError] = useState<string>("");
@@ -148,7 +149,8 @@ const CheckoutForm: React.FC = () => {
 
 
   // Form submission
-  const handleSubmit = async (token: boolean) => {
+  const handleSubmit = async (pay_now: boolean) => {
+    setPayNowBtn(pay_now);
     validateName(name);
     setButtonLoading(true);
     if (stripeValidationError) {
@@ -181,7 +183,7 @@ const CheckoutForm: React.FC = () => {
           key: apiKey,
           mode: paymentMethod.type,
           paymentMethod: paymentMethod.id,
-          payNow: token,
+          payNow: pay_now,
         };
         const response = await getPaymentStatus(paymentKeys);
 
@@ -335,14 +337,15 @@ const CheckoutForm: React.FC = () => {
               </div>
               <button
                 className="btn btn-primary btn-lg w-100 btn-hover-shine mb-2"
-                onClick={() => handleSubmit(false)}
+                onClick={() => handleSubmit(true)}
                 disabled={
-                  !stripe ||
-                  buttonLoading ||
-                  isPaymentStatusLoading ||
-                  stripeValidationError
+                  (!stripe ||
+                    buttonLoading ||
+                    isPaymentStatusLoading ||
+                    stripeValidationError) &&
+                  !payNowBtn
                 }>
-                {buttonLoading || isPaymentStatusLoading
+                {(buttonLoading || isPaymentStatusLoading) && payNowBtn
                   ? "Processing Payment..."
                   : `Pay now ${
                       paymentInfo.paymentDetails.currency
@@ -352,14 +355,15 @@ const CheckoutForm: React.FC = () => {
               {paymentInfo.paymentDetails.isValidForTokenization && (
                 <button
                   className="btn btn-secondary btn-lg w-100 btn-hover-shine"
-                  onClick={() => handleSubmit(true)}
+                  onClick={() => handleSubmit(false)}
                   disabled={
-                    !stripe ||
-                    buttonLoading ||
-                    isPaymentStatusLoading ||
-                    stripeValidationError
+                    (!stripe ||
+                      buttonLoading ||
+                      isPaymentStatusLoading ||
+                      stripeValidationError) &&
+                    payNowBtn
                   }>
-                  {buttonLoading || isPaymentStatusLoading
+                  {(buttonLoading || isPaymentStatusLoading) && !payNowBtn
                     ? "Processing..."
                     : `Setup for future payment due on ${paymentInfo.paymentDetails.dueDate}`}
                 </button>

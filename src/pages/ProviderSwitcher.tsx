@@ -34,8 +34,11 @@ const ProviderSwitcher: React.FC = () => {
 
   const handleOnSuccess = (paymentInfo: IPaymentInformation) => {
     if (paymentInfo.providerDetails.provider.toLowerCase() === "stripe") {
+      const embeddedWindow = paymentInfo.embedded;
+      // Sending message of embedded status to parent website from iframe
+      window.parent.postMessage({embedded: embeddedWindow}, "*");
+
       if (embedded) {
-        alert("embed true");
         navigate("/stripe-em-checkout", {
           state: {
             paymentInfo,
@@ -75,6 +78,7 @@ const ProviderSwitcher: React.FC = () => {
   }, [apiKey]);
 
   useEffect(() => {
+
     if (data && data.valid) {
       paymentInformation = data;
       if (paymentInformation) {

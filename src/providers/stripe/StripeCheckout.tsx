@@ -15,7 +15,7 @@ import {
   loadStripe,
 } from "@stripe/stripe-js";
 import gradient_bg from "../../assets/gradient-bg.png";
-import iol_logo from "../../assets/iol-logo.svg";
+import xt_logo from "../../assets/xt-logo.jpg";
 import {useLocation} from "react-router-dom";
 import {
   IPaymentInformation,
@@ -146,9 +146,9 @@ const CheckoutForm: React.FC = () => {
     }
   }, [nameError, cardNumberError, cvcError, expiryError, name, elements]);
 
+
   // Form submission
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (token: boolean) => {
     validateName(name);
     setButtonLoading(true);
     if (stripeValidationError) {
@@ -181,6 +181,7 @@ const CheckoutForm: React.FC = () => {
           key: apiKey,
           mode: paymentMethod.type,
           paymentMethod: paymentMethod.id,
+          payNow: token,
         };
         const response = await getPaymentStatus(paymentKeys);
 
@@ -262,18 +263,16 @@ const CheckoutForm: React.FC = () => {
                   <p className="text-center">
                     <b>Powered by </b>{" "}
                     <img
-                      src={iol_logo}
+                      src={xt_logo}
                       className="d-inline mx-2"
-                      alt="iOL Pay"
-                      style={{height: "1rem"}}
+                      alt="xt Pay"
+                      style={{height: "1.75rem"}}
                     />
                   </p>
                 </div>
               </div>
             </div>
-            <form
-              onSubmit={handleSubmit}
-              className="checkout-form col-md-6 px-2 px-md-4">
+            <form className="checkout-form col-md-6 px-2 px-md-4">
               <div className="divider d-block d-md-none"></div>
               <h3 className="mb-3 mt-2">Payment Details</h3>
               <div className="form-row mb-3">
@@ -335,8 +334,8 @@ const CheckoutForm: React.FC = () => {
                 </span>
               </div>
               <button
-                className="btn btn-secondary btn-lg w-100 btn-hover-shine"
-                type="submit"
+                className="btn btn-primary btn-lg w-100 btn-hover-shine mb-2"
+                onClick={() => handleSubmit(false)}
                 disabled={
                   !stripe ||
                   buttonLoading ||
@@ -344,9 +343,27 @@ const CheckoutForm: React.FC = () => {
                   stripeValidationError
                 }>
                 {buttonLoading || isPaymentStatusLoading
-                  ? "Processing Payment"
-                  : "Make Payment"}
+                  ? "Processing Payment..."
+                  : `Pay now ${
+                      paymentInfo.paymentDetails.currency
+                    } ${paymentInfo.paymentDetails.amount.toLocaleString()}`}
               </button>
+
+              {paymentInfo.paymentDetails.isValidForTokenization && (
+                <button
+                  className="btn btn-secondary btn-lg w-100 btn-hover-shine"
+                  onClick={() => handleSubmit(true)}
+                  disabled={
+                    !stripe ||
+                    buttonLoading ||
+                    isPaymentStatusLoading ||
+                    stripeValidationError
+                  }>
+                  {buttonLoading || isPaymentStatusLoading
+                    ? "Processing..."
+                    : `Setup for future payment due on ${paymentInfo.paymentDetails.dueDate}`}
+                </button>
+              )}
             </form>
           </div>
         </div>

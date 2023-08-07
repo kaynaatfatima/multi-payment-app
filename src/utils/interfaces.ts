@@ -7,6 +7,7 @@ export interface IPaymentInformation {
   valid: boolean;
   message: string;
   paymentLinkExpiryDate: string;
+  embedded: boolean;
   clientDetails: {
     name: string;
     returnUrlSuccess: string;
@@ -23,6 +24,8 @@ export interface IPaymentInformation {
     amount: number;
     currency: string;
     description: string;
+    dueDate: string;
+    isValidForTokenization: boolean;
     payer: {
       title: string;
       name: string;
@@ -49,4 +52,5 @@ export interface IPaymentMethodQueryObject {
   key?: string;
   mode: string;
   paymentMethod: string;
+  payNow: boolean
 }

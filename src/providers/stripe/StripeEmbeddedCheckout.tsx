@@ -14,6 +14,8 @@ import {
   StripeCardNumberElementChangeEvent,
   loadStripe,
 } from "@stripe/stripe-js";
+import gradient_bg from "../../assets/gradient-bg.png";
+import xt_logo from "../../assets/xt-logo.jpg";
 import {useLocation} from "react-router-dom";
 import {
   IPaymentInformation,
@@ -62,10 +64,10 @@ const CheckoutForm: React.FC = () => {
     });
   };
 
-  //   useEffect(() => {
-  //     if (!paymentInfo) handleOnError("Oops! This page has restricted access.");
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   }, [paymentInfo]);
+  useEffect(() => {
+    if (!paymentInfo) handleOnError("Oops! This page has restricted access.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentInfo]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -145,8 +147,7 @@ const CheckoutForm: React.FC = () => {
   }, [nameError, cardNumberError, cvcError, expiryError, name, elements]);
 
   // Form submission
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (token: boolean) => {
     validateName(name);
     setButtonLoading(true);
     if (stripeValidationError) {
@@ -179,6 +180,7 @@ const CheckoutForm: React.FC = () => {
           key: apiKey,
           mode: paymentMethod.type,
           paymentMethod: paymentMethod.id,
+          payNow: token,
         };
         const response = await getPaymentStatus(paymentKeys);
 
@@ -226,71 +228,83 @@ const CheckoutForm: React.FC = () => {
   return (
     paymentInfo && (
       <>
-        <div className="d-flex flex-row flex-wrap-reverse p-4 m-2">
-          <form
-            onSubmit={handleSubmit}
-            className="checkout-form col-12 px-2 px-md-4">
-            <div className="divider d-block d-md-none"></div>
-            <h3 className="mb-3 mt-2">Payment Details</h3>
-            <div className="form-row mb-3">
-              <label>Card Holder Name</label>
-              <input
-                style={{textTransform: "uppercase"}}
-                className={`form-control ${nameError ? "border-danger" : ""}`}
-                type="text"
-                value={name}
-                onChange={(e) => handleNameChange(e)}
-                placeholder="Name on card"
-              />
-              {nameError && (
-                <em className="error invalid-feedback">{nameError}</em>
-              )}
-            </div>
-            <div className="form-row mb-3">
-              <label>Card Number</label>
-              <CardNumberElement
-                className={`form-control ${
-                  cardNumberError ? "border-danger" : ""
-                }`}
-                onChange={(e) => handleCardNumberChange(e)}
-              />
-              {cardNumberError && (
-                <em className="error invalid-feedback">{cardNumberError}</em>
-              )}
-            </div>
-            <div className="form-row mb-3">
-              <label>CVC</label>
-              <CardCvcElement
-                className={`form-control ${cvcError ? "border-danger" : ""}`}
-                onChange={(e) => handleCvcChange(e)}
-              />
-              {cvcError && (
-                <em className="error invalid-feedback">{cvcError}</em>
-              )}
-            </div>
-            <div className="form-row mb-3">
-              <label>Expiry Date</label>
-              <CardExpiryElement
-                className={`form-control ${expiryError ? "border-danger" : ""}`}
-                onChange={(e) => handleExpiryChange(e)}
-              />
-              {expiryError && (
-                <em className="error invalid-feedback">{expiryError}</em>
-              )}
-            </div>
+        <form className="checkout-form col-12 px-2 px-md-4">
+          <div className="divider d-block d-md-none"></div>
+          <h3 className="mb-3 mt-2">Payment Details</h3>
+          <div className="form-row mb-3">
+            <label>Card Holder Name</label>
+            <input
+              style={{textTransform: "uppercase"}}
+              className={`form-control ${nameError ? "border-danger" : ""}`}
+              type="text"
+              value={name}
+              onChange={(e) => handleNameChange(e)}
+              placeholder="Name on card"
+            />
+            {nameError && (
+              <em className="error invalid-feedback">{nameError}</em>
+            )}
+          </div>
+          <div className="form-row mb-3">
+            <label>Card Number</label>
+            <CardNumberElement
+              className={`form-control ${
+                cardNumberError ? "border-danger" : ""
+              }`}
+              onChange={(e) => handleCardNumberChange(e)}
+            />
+            {cardNumberError && (
+              <em className="error invalid-feedback">{cardNumberError}</em>
+            )}
+          </div>
+          <div className="form-row mb-3">
+            <label>CVC</label>
+            <CardCvcElement
+              className={`form-control ${cvcError ? "border-danger" : ""}`}
+              onChange={(e) => handleCvcChange(e)}
+            />
+            {cvcError && <em className="error invalid-feedback">{cvcError}</em>}
+          </div>
+          <div className="form-row mb-3">
+            <label>Expiry Date</label>
+            <CardExpiryElement
+              className={`form-control ${expiryError ? "border-danger" : ""}`}
+              onChange={(e) => handleExpiryChange(e)}
+            />
+            {expiryError && (
+              <em className="error invalid-feedback">{expiryError}</em>
+            )}
+          </div>
 
-            <div className="divider my-4"></div>
-            <div className="form-row mb-2">
-              <label className="mr-3">Total Amount:</label>
-              <span>
-                {paymentInfo.paymentDetails.currency +
-                  " " +
-                  paymentInfo.paymentDetails.amount.toLocaleString()}
-              </span>
-            </div>
+          <div className="divider my-4"></div>
+          <div className="form-row mb-2">
+            <label className="mr-3">Total Amount:</label>
+            <span>
+              {paymentInfo.paymentDetails.currency +
+                " " +
+                paymentInfo.paymentDetails.amount.toLocaleString()}
+            </span>
+          </div>
+          <button
+            className="btn btn-primary btn-lg w-100 btn-hover-shine mb-2"
+            onClick={() => handleSubmit(false)}
+            disabled={
+              !stripe ||
+              buttonLoading ||
+              isPaymentStatusLoading ||
+              stripeValidationError
+            }>
+            {buttonLoading || isPaymentStatusLoading
+              ? "Processing Payment..."
+              : `Pay now ${
+                  paymentInfo.paymentDetails.currency
+                } ${paymentInfo.paymentDetails.amount.toLocaleString()}`}
+          </button>
+
+          {paymentInfo.paymentDetails.isValidForTokenization && (
             <button
               className="btn btn-secondary btn-lg w-100 btn-hover-shine"
-              type="submit"
+              onClick={() => handleSubmit(true)}
               disabled={
                 !stripe ||
                 buttonLoading ||
@@ -298,11 +312,11 @@ const CheckoutForm: React.FC = () => {
                 stripeValidationError
               }>
               {buttonLoading || isPaymentStatusLoading
-                ? "Processing Payment"
-                : "Make Payment"}
+                ? "Processing..."
+                : `Setup for future payment due on ${paymentInfo.paymentDetails.dueDate}`}
             </button>
-          </form>
-        </div>
+          )}
+        </form>
 
         {paymentError ? (
           !stripeValidationError ? (

@@ -14,8 +14,6 @@ import {
   StripeCardNumberElementChangeEvent,
   loadStripe,
 } from "@stripe/stripe-js";
-import gradient_bg from "../../assets/gradient-bg.png";
-import xt_logo from "../../assets/xt-logo.jpg";
 import {useLocation} from "react-router-dom";
 import {
   IPaymentInformation,

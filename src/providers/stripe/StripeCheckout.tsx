@@ -41,6 +41,7 @@ const CheckoutForm: React.FC = () => {
     null
   );
   const [payNowBtn, setPayNowBtn] = useState<boolean | undefined>();
+  const [pay_now, set_pay_now] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
   const [cardNumberError, setCardNumberError] = useState<string>("");
@@ -66,7 +67,9 @@ const CheckoutForm: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!paymentInfo) handleOnError("Oops! This page has restricted access.");
+    if (!paymentInfo) {
+      handleOnError("Oops! This page has restricted access.");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentInfo]);
 
@@ -141,15 +144,14 @@ const CheckoutForm: React.FC = () => {
       name === ""
     ) {
       setStripeValidationError(true);
-      console.log("TRUE");
     } else {
       setStripeValidationError(false);
     }
   }, [nameError, cardNumberError, cvcError, expiryError, name, elements]);
 
-
   // Form submission
-  const handleSubmit = async (pay_now: boolean) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setPayNowBtn(pay_now);
     validateName(name);
     setButtonLoading(true);
@@ -186,7 +188,6 @@ const CheckoutForm: React.FC = () => {
           payNow: pay_now,
         };
         const response = await getPaymentStatus(paymentKeys);
-
         if ("data" in response) {
           if (response.data.success) {
             navigate("/success");
@@ -274,7 +275,9 @@ const CheckoutForm: React.FC = () => {
                 </div>
               </div>
             </div>
-            <form className="checkout-form col-md-6 px-2 px-md-4">
+            <form
+              onSubmit={handleSubmit}
+              className="checkout-form col-md-6 px-2 px-md-4">
               <div className="divider d-block d-md-none"></div>
               <h3 className="mb-3 mt-2">Payment Details</h3>
               <div className="form-row mb-3">
@@ -336,8 +339,10 @@ const CheckoutForm: React.FC = () => {
                 </span>
               </div>
               <button
-                className="btn btn-primary btn-lg w-100 btn-hover-shine mb-2"
-                onClick={() => handleSubmit(true)}
+                style={{backgroundColor: "#1a4588", color: "white"}}
+                className="btn btn-lg w-100 btn-hover-shine mb-2"
+                type="submit"
+                onClick={() => set_pay_now(true)}
                 disabled={
                   (!stripe ||
                     buttonLoading ||
@@ -354,14 +359,15 @@ const CheckoutForm: React.FC = () => {
 
               {paymentInfo.paymentDetails.isValidForTokenization && (
                 <button
-                  className="btn btn-secondary btn-lg w-100 btn-hover-shine"
-                  onClick={() => handleSubmit(false)}
+                  className="btn btn-secondary btn-lg w-100 btn-hover-shine mb-2"
+                  type="submit"
+                  onClick={() => set_pay_now(false)}
                   disabled={
                     (!stripe ||
                       buttonLoading ||
                       isPaymentStatusLoading ||
                       stripeValidationError) &&
-                    payNowBtn
+                    (payNowBtn === true || payNowBtn === undefined)
                   }>
                   {(buttonLoading || isPaymentStatusLoading) && !payNowBtn
                     ? "Processing..."

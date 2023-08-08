@@ -139,7 +139,6 @@ const CheckoutForm: React.FC = () => {
       name === ""
     ) {
       setStripeValidationError(true);
-      console.log("TRUE");
     } else {
       setStripeValidationError(false);
     }

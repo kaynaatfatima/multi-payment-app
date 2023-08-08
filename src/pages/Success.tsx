@@ -15,7 +15,8 @@ const Success: React.FC = () => {
           Success
         </h1>
         <p className="text-center h5 text-light">
-          We recieved your payment request, we will send you confirmation email shortly
+          We have received your payment request, you will receive a confirmation
+          email shortly.
         </p>
         {/* <Link
           className="btn btn-primary btn-hover-shine btn-lg w-100 mt-3"
